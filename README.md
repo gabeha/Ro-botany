@@ -7,5 +7,8 @@ https://docs.google.com/document/d/1sxnOa2yOE2neOY-cXFafw0-f_nQRxtkU9ZWBJhnGo6c/
 Link to AI roadmap:
 https://docs.google.com/document/d/1tBxGTi6nncrm5ef6ojkFyfWacN0hI7N2RnovJeUxUgU/edit#
 
+Link to Website roadmap:
+https://docs.google.com/document/d/1ayYGKt5_laBwr2esZOrpB04qlDeAe4ZwDhIvPSagO0E/edit?usp=sharing
+
 Use this Google Collab to write the AI code:
 https://colab.research.google.com/drive/1SVOjjqmA7OCuKGe58h7cMrTV8nqgunFD?usp=sharing
