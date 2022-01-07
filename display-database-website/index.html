@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+	  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css">
+    <title>Sensor readings</title>
+</head>
+<script>
+  function connectSensor() {
+    fetch('http://137.120.223.1/data.csv')
+    .then(response => response.text())
+    .then(text => {
+      var data = text.split("\n")
+      document.getElementById("dataLabel").innerHTML = data[data.length-2] + "C";
+
+      var options = {
+				legend: true,
+				width: '75%'
+			};
+
+            var groups = new vis.DataSet();
+				groups.add({
+					id:0,
+					content: "Humidity (%)"
+				});
+				var container = document.getElementById('dataGraph');
+				var wdata = [];
+				var i = 0
+				for (var d in data) {
+					wdata.push({ x: i, y: parseFloat(data[d]), group: 0});
+					i += 1;
+				}
+				var dataset = new vis.DataSet();
+				dataset.add(wdata);
+				graph = new vis.Graph2d(container, dataset, groups, options);
+    })
+  }
+
+</script>
+<body onload = "connectSensor()">
+  <div>
+    <h1>Humidity</h1>
+    <h2 id="dataLabel">?</h2>
+    <div id="dataGraph"></div>
+  </div>
+    <button onClick="window.location.reload();">Refresh Page</button>
+</body>
+</html>
