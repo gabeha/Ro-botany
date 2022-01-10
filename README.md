@@ -12,3 +12,6 @@ https://docs.google.com/document/d/1ayYGKt5_laBwr2esZOrpB04qlDeAe4ZwDhIvPSagO0E/
 
 Use this Google Collab to write the AI code:
 https://colab.research.google.com/drive/1SVOjjqmA7OCuKGe58h7cMrTV8nqgunFD?usp=sharing
+
+Project Report: 
+https://docs.google.com/document/d/1Yqo344VoCbxGI1f4yONKrylvK3hi_DgaEKwtlhalkqo/edit
