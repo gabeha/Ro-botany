@@ -1,25 +1,34 @@
 import requests
 import csv
-import threading
 
-filename = "salvia_rosmarinus.csv"
+filename = "thymus_vulgaris.csv"
 
 
 def open_file(filename):
     with open(filename, newline='') as csvfile:
         data = list(csv.reader(csvfile))
         data.pop(0)
-        return data
-    
+        data_new=[]
+        for x in data:
+            if x:
+                data_new.append(x)
+
+        return data_new
+
 
 def do_request(data):
     counter = 1
 
     for row in data:
-        url = row[0]
-        url = url.replace("medium","large")
-        r = requests.get(url, allow_redirects=True)
-        open('image'+str(counter)+'.jpg', 'wb').write(r.content)
+        try:
+            url = row[0]
+        #url = url.replace("medium","large")
+            r = requests.get(url, allow_redirects=True)
+            open('image'+str(counter)+'.jpg', 'wb').write(r.content)
+
+        except:
+            pass
+
         print(counter)
         counter = counter+1
 
