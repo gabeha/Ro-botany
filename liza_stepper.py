@@ -40,7 +40,7 @@ class motor(object):
         while time.time() < t_end:
 
             # default state of the pins is the one that gives clockwise rotation
-            if clockwise == True:
+            if clockwise:
                 for i in range(self.steps_per_rev):
                     for halfstep in range(8):
                         for pin in range(4):
@@ -69,78 +69,90 @@ pins2 = [6, 13, 19, 26]
 pins3 = [12,16,20,21]
 pins4 = [18,23,24,25]
 
+# X axis motors
 motor1 = motor(pins1)
 motor2 = motor(pins2)
+
+# Y axis motors
 motor3 = motor(pins3)
 motor4 = motor(pins4)
 
-while True :
-    motor1.forwardStep()
-    motor2.forwardStep()
-    motor3.forwardStep()
-    motor4.forwardStep()
-    time.sleep(1)
+
 
 # LOGIC FOR STEPPER MOTORS
 
 # ---------------------------------------------------------------------------------------------------------------
 # here i assume that motor1 is used for X-axis movement and motors 2 and 3 are used for counterclockwise movement
 
-def getToX1(currentX):
+def getToX1(self):
+    currentX = self.currentX
     if currentX == 'X1':
         pass
     else:
-        motor1.Step(clockwise = True, Xt)
-        self.currentX = 'X1'
+        motor1.Step(clockwise=True, Xt)
+        motor1.currentX = 'X1'
+        motor2.currentX = 'X1'
 
-def getToX2(currentX):
+
+def getToX2(self):
+    currentX = self.currentX
     if currentX == 'X2':
         pass
     else:
-        motor1.Step(clockwise = False, Xt)
-        self.currentX = 'X2'
+        motor1.Step(clockwise=False, Xt)
+        motor1.currentX = 'X2'
+        motor2.currentX = 'X2'
 
 
-def getToY1(currentY):
+def getToY1(self):
+    currentY = self.currentY
     if currentY == 'Y1':
         pass
     else:
-        motor2.Step(clockwise = True, Yt)
+        motor4.Step(clockwise=True, Yt)
         motor3.Step(clockwise=True, Yt)
-        self.currentY = 'Y1'
+        motor4.currentY = 'Y1'
+        motor3.currentY = 'Y1'
 
-def getToY2(currentY):
+
+def getToY2(self):
+    currentY = self.currentY
     if currentY == 'Y2':
         pass
     else:
-        motor2.Step(clockwise=False,Yt)
+        motor4.Step(clockwise=False, Yt)
         motor3.Step(clockwise=False, Yt)
-        self.currentY = 'Y2'
+        motor4.currentY = 'Y2'
+        motor3.currentY = 'Y2'
+
 
 # ---------------------------------------------------------------------------------------------------------------
 
 def box1():
-    currentX = self.currentX
-    currentY = self.currentY
-    getToX1(currentX)
-    getToY1(currentY)
+    motor1.getToX1(self)
+    motor3.getToY1(self)
+
 
 def box2():
-    currentX = self.currentX
-    currentY = self.currentY
-    getToX2(currentX)
-    getToY1(currentY)
+    motor1.getToX2(self)
+    motor3.getToY1(self)
+
 
 def box3():
-    currentX = self.currentX
-    currentY = self.currentY
-    getToX1(currentX)
-    getToY2(currentY)
+    motor1.getToX1(self)
+    motor3.getToY2(self)
 
-def box3():
-    currentX = self.currentX
-    currentY = self.currentY
-    getToX2(currentX)
-    getToY2(currentY)
+
+def box4():
+    motor1.getToX2(self)
+    motor3.getToY2(self)
+
+
+# ---------------------------------------------------------------------------------------------------------------
+
+while True :
+    box1()
+    time.sleep(1)
+
 
 # -------------------------------------------------------------------------------------------------------------
