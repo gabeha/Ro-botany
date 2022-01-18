@@ -1,0 +1,51 @@
+import pyfirmata
+import time
+
+
+# in this function you pass on arguments for both pins powering the pump
+def Pump(pin, mode):
+    pin.write(mode)
+    
+
+if __name__=='__main__':
+  board = pyfirmata.Arduino('/dev/ttyACM0')
+  
+  # 6 digital pins, each corresponding to the base of the transistor on 4 pumps or 2 fans
+  pump1 = board.get_pin('d:2:o')
+  pump2 = board.get_pin('d:3:o')
+  pump3 = board.get_pin('d:4:o')
+  pump4 = board.get_pin('d:5:o')
+  fan1 = board.get_pin('d:6:o')
+  fan2 = board.get_pin('d:7:o')
+  
+
+
+while True:
+    On = 1.0
+    Off = 0
+    
+    
+    print('pyfirmata is running')
+   
+    pump1.write(1.0)
+    pump2.write(1.0)
+    pump3.write(1.0)
+    pump4.write(1.0)
+    fan1.write(1.0)
+    fan2.write(1.0)
+   
+    
+    
+ 
+
+
+    
+    
+  
+
+
+  
+
+
+
+
