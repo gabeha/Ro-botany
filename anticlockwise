@@ -1,0 +1,193 @@
+import RPi.GPIO as GPIO
+import time
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Xt/Yt correspond to the time that motor should be on to get to a different X/Y position (in seconds)
+Xt = 50
+Yt = 200
+
+counter =0 
+
+currentX = 'X2'
+currentY = 'Y1'
+
+#f = open("position_cam.txt", "w")
+#f.writelines(str(currentX)\n, str(currentrY))
+#f.close()
+
+# X axis motors
+
+motor1 = [4,17,27,22]
+motor1_a = [22, 27, 17, 4]
+motor2 = [6, 13, 19, 26]
+motor2_a = [26, 19, 13, 6]
+
+# Y axis motors
+
+motor3 = [12,16,20,21]
+motor4 = [18,23,24,25]
+motor3_a = [21, 20, 16, 12]
+motor4_a = [25, 24, 23, 18]      
+
+
+pins_all = [4,17,27,22, 6, 13, 19, 26, 12,16,20,21, 18,23,24,25]
+pins = []
+
+
+
+delay = 0.001
+steps_per_rev = 512
+forward = 0
+
+sequence = [
+	[1,0,0,0],
+	[1,1,0,0],
+	[0,1,0,0],
+	[0,1,1,0],
+	[0,0,1,0],
+	[0,0,1,1],
+	[0,0,0,1],
+	[1,0,0,1]
+]
+
+for pin in pins_all :
+        GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(pin, 0)
+
+
+
+# this function takes pins and rotation direction as an argument and makes a motor with specified pins to rotate in this direction
+# it also takes time as a variable; motion will be executed for set number of seconds, depending on the axis we are moving on
+
+def Step(motor1, motor2, clockwise):
+    if clockwise:
+        print('rotating clockwise')
+        
+        
+    else:
+        print('rotating anticlockwise')
+       
+                # if rotation is counterclockwise, pins are reversed
+    for i in range(512):
+        for halfstep in range(8):
+            for pin in range(4):
+                GPIO.output(motor1[pin], sequence[halfstep][pin])
+                GPIO.output(motor2[pin], sequence[halfstep][pin])
+            time.sleep(0.001)        
+
+
+
+
+# LOGIC FOR STEPPER MOTORS
+
+# ---------------------------------------------------------------------------------------------------------------
+# here i assume that motor1 is used for X-axis movement and motors 2 and 3 are used for counterclockwise movement
+
+def getToX1(currentX):
+    
+    print(currentX)
+    if currentX == 'X1':
+        print('doesnt move to x1 cause current x is already x1')
+        pass
+    else:
+        x_end = Xt 
+        for i in range(int(x_end)):
+            # simultaneous clockwise rotation moves camera from X1 to X2
+            Step(motor1, motor2, True)
+        currentX = 'X1'
+        print('position is x1') 
+    return currentX
+
+
+def getToX2(currentX):
+    print(currentX)
+    if currentX == 'X2':
+        print('doesnt move to x2 cause current x is already x2')
+        pass
+    else:
+        x_end = Xt 
+        for i in range(int(x_end)):
+            # simultaneous anticlockwise rotation moves camera from X2 to X1
+            Step(motor1_a, motor2_a, False)
+        currentX = 'X2'
+        print('position is x2') 
+    return currentX
+
+
+def getToY1(currentY):
+    print(currentY)
+    if currentY == 'Y1':
+        print('doesnt move to y1 cause current y is already y1')
+        pass
+        
+    else:
+        x_end = Yt 
+        for i in range(int(x_end)):
+            # simultaneous clockwise rotation moves camera from Y1 to Y2
+            Step(motor3, motor4, True)
+        currentY = 'Y1'
+        print('position is y1') 
+    return currentY    
+
+
+def getToY2(currentY):
+    print(currentY)
+    if currentY == 'Y2':
+        print('doesnt move to y2 cause current y is already y2')
+        pass
+    else:
+        x_end = Yt 
+        for i in range(int(x_end)):
+            # simultaneous anticlockwise rotation moves camera from Y2 to Y1
+            Step(motor3_a, motor4_a, False)
+        print('position is y2')    
+        currentY = 'Y2'
+    return currentY
+
+
+# ---------------------------------------------------------------------------------------------------------------
+
+def box1():
+    global currentX, currentY
+    print('started box1')
+    currentX = getToX2(currentX)
+    currentY = getToY2(currentY)
+    print('finished box1')
+
+
+def box2():
+    global currentX, currentY
+    currentX = getToX2(currentX)
+    currentY = getToY1(currentY)
+
+
+def box3():
+    global currentX, currentY
+    currentX = getToX1(currentX)
+    currentY = getToY1(currentY)
+
+
+def box4():
+    global currentX, currentY
+    currentX = getToX2(currentX)
+    currentY = getToY2(currentY)
+
+
+# ---------------------------------------------------------------------------------------------------------------
+
+while True :
+    
+    # creates a file holding the last position value of the camera
+    #Step(motor1, motor2, True) # 200 steps to get from x1 to x2 and from y1 to y2
+    Step(motor3_a, motor4_a, False)
+    counter += 1
+    print(counter)
+  
+
+
+# -------------------------------------------------------------------------------------------------------------
+
