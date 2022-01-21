@@ -35,6 +35,14 @@ if __name__ == '__main__':
 
     pin_in4 = board.get_pin('a:1:i')
     moisture_sensor4 = board.get_pin('d:7:o')
+    
+    # light
+    pin8 = board.get_pin('d:8:p')
+    pin13 = board.get_pin('d:13:p')
+
+    # fan
+    pin12 = board.get_pin('d:12:p')
+    pin14 = board.get_pin('d:14:p')
 
 # sets the conditions and specific pumps to use according to plant identified
 def plant(plant_type):
