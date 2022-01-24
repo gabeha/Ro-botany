@@ -86,12 +86,19 @@ def irrigation():
 
 def main():
     global lampCount, plant_box
-    # block=True handles graceful shutdown of the threads
     lampOn()
+    lampCount = 1         # since timeloop will wait for the entire interval (8 hours for lamp) to start with the looping
+    
+    # create an empty AIout.txt file before populating it with an AI output
+    f = open("AIout.txt", 'w')
+    for i in range(4):
+        f.write("None\n")
+    f.close 
+    
     # get the AI output
     plant_box = AIout()
     mainIrrig(plant_box)
-    lampCount = 2 # since timeloop will wait for the entire interval (8 hours for lamp) to start with the looping
-    tl.start(block=True)
+   
+    tl.start(block=True)  # block=True handles graceful shutdown of the threads
 
 main()
