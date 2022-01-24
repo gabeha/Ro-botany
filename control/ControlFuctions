@@ -1,0 +1,122 @@
+import os
+import random
+import pyfirmata
+from time import sleep
+from irrig import plant, soilMoisture
+
+board = pyfirmata.Arduino('/dev/ttyACM0')
+
+# setup pins
+
+#pumps
+pumpPin1 = board.get_pin('d::o')
+pumpPin2 = board.get_pin('d::o')
+pumpPin3 = board.get_pin('d::o')
+pumpPin4 = board.get_pin('d::o')
+
+#lamp
+lampPin = board.get_pin('d::o')
+
+#fans
+fanPin1 = board.get_pin('d::o')
+fanPin2 = board.get_pin('d::o')
+
+# moisture sensors:
+moistureIn1 = board.get_pin('a::o')
+moisturePower1 = board.get_pin('d::o')
+moistureIn2 = board.get_pin('a::o')
+moisturePower2 = board.get_pin('d::o')
+moistureIn3 = board.get_pin('a::o')
+moisturePower3 = board.get_pin('d::o')
+moistureIn4 = board.get_pin('a::o')
+moisturePower4 = board.get_pin('d::o')
+
+
+# lamp and fans functions
+def lampOn():
+    lampPin.write(1.0)
+
+def lampOff():
+    lampPin.write(0.0)
+    
+def fanOn():
+    fanPin1.write(1.0)
+    fanPin2.write(1.0)
+
+def fanOff():
+    fanPin1.write(0.0)
+    fanPin2.write(0.0)
+
+
+def AIout():
+    # reads out what plnts are in what positions
+    global plant_box
+    plant_box = [None, None, None, None]
+    if os.path.isfile('AIout.txt'):
+        f = open('AIout.txt', 'r')
+        for i in range(4):
+            plant_box[i] = f.readline().strip('\n')
+        f.close()
+        print("AI found plants, they are {plants}".format(plants=plant_box))
+    else:
+        # there is no AI output, no plants are in the box
+        print('AI didnt find any plants')
+
+    return plant_box
+
+
+
+
+
+
+def plant(plant_type):
+    global water_threshold
+
+
+    if plant_type == "corriander":
+        water_threshold = 90
+        print('found corriander')
+
+    elif plant_type == "ocimum basilicum":
+        water_threshold = 90
+        print('found basil')
+
+    elif plant_type == "salvia rosmarinus":
+        water_threshold = 100
+
+        print('found salvia')
+
+    elif plant_type == "thymus vulgaris":
+        water_threshold = 90
+        print('found thyme')
+
+    else:
+        # water_threshold is too low to turn stuff on
+        water_threshold = 0
+
+    print('water threshold = {th}'.format(th=water_threshold))
+    return water_threshold
+
+
+def soilMoisture(water_threshold):
+    reading = random.uniform(50.0, 100.0)
+    print('moisture sensor is {moist}'.format(moist=reading))
+    if reading < water_threshold:
+        print('pumps are on')
+        sleep(5)
+    else:
+        print('pumps are off')
+        
+        
+# function that will maintain irrigation in all 4 boxes
+def mainIrrig(plant_box):
+    for box in plant_box:
+        print(box)
+        if str(box) == 'None':
+            print('box is None')
+
+        else:
+            print('box is not None')
+            # calls function that establishes watering threshold for plant
+            water_threshold = plant(box)
+            soilMoisture(water_threshold)
