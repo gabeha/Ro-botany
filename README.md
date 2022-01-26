@@ -1,6 +1,12 @@
 # plant-box
 A repository to share code, files and ideas for the MSP plant growth box project
 
+Link to the final paper:
+https://drive.google.com/file/d/1z30Tg__y2-84WdvONNSQQ64Tg9TVTcnA/view?usp=sharing
+
+
+
+
 Link to General Overview:
 https://docs.google.com/document/d/1sxnOa2yOE2neOY-cXFafw0-f_nQRxtkU9ZWBJhnGo6c/edit#heading=h.od56atbdhvgb
 
