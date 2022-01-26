@@ -1,0 +1,205 @@
+import os
+import random
+import pyfirmata
+from time import sleep
+import RPi.GPIO as GPIO
+
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+try:
+    board = pyfirmata.Arduino('/dev/ttyACM0')
+except(Exception):
+    try:
+        board = pyfirmata.Arduino('/dev/ttyACM1')
+    except(Exception):
+        board = pyfirmata.Arduino('/dev/ttyAMA0')
+    
+
+# setup pins
+
+#pumps
+#pumpPin1 = board.get_pin('d:1:o')  # not funtional
+#pumpPin1 = board.get_pin('d:1:o')  # not funtional
+#pumpPin2 = board.get_pin('d:2:o')  # not funtional
+pumpPin3 = board.get_pin('d:12:o')
+#pumpPin4 = board.get_pin('d:13:o')  # not funtional
+pumpPins = [pumpPin3]
+
+#lamp
+lampPin1 = 9
+lampPin2 = 11
+
+GPIO.setup(lampPin1, GPIO.OUT)
+GPIO.setup(lampPin2, GPIO.OUT)
+        
+
+#fans
+fanPin1 = board.get_pin('d:10:o')
+fanPin2 = board.get_pin('d:8:o')
+
+# moisture sensors:
+moistureIn1 = board.get_pin('a:0:i')
+moisturePower1 = board.get_pin('d:7:o')
+moistureIn2 = board.get_pin('a:1:i')
+moisturePower2 = board.get_pin('d:6:o')
+moistureIn3 = board.get_pin('a:2:i')
+moisturePower3 = board.get_pin('d:5:o')
+moistureIn4 = board.get_pin('a:3:i')
+moisturePower4 = board.get_pin('d:4:o')
+moistureIn = [moistureIn1, moistureIn2, moistureIn3, moistureIn4]
+moisturePower = [moisturePower1, moisturePower2, moisturePower3, moisturePower4]
+
+map_high = 0.24
+map_low  = 1.0
+
+# lamp and fans functions
+def lampOn():
+    GPIO.output(lampPin1, 1)
+    GPIO.output(lampPin2, 1)
+
+def lampOff():
+    GPIO.output(lampPin1, 0)
+    GPIO.output(lampPin2, 0)
+
+def fanOn():
+    fanPin1.write(1.0)
+    fanPin2.write(1.0)
+
+def fanOff():
+    fanPin1.write(0.0)
+    fanPin2.write(0.0)
+
+# ---------------------------------------------------------------------------
+def AIout():
+    # reads out what plnts are in what positions
+    global plant_box
+    plant_box = [None, None, None, None]
+    if os.path.isfile('AIout.txt'):
+        print('there is AIout.txt')
+        f = open('AIout.txt', 'r')
+        for i in range(4):
+            plant_box[i] = f.readline().strip('\n')
+        f.close()
+        print("AI found plants, they are {plants}".format(plants=plant_box))
+    else:
+        # there is no AI output, no plants are in the box
+        print('AI didnt find any plants')
+
+    return plant_box
+
+# ---------------------------------------------------------------------------
+def Pumps(pump):
+    pump.write(1.0)
+    sleep(5)
+    pump.write(0.0)
+
+# ---------------------------------------------------------------------------
+
+def plant(plant_type):
+    global water_threshold
+    global pumpPin1
+    global map_low
+    global map_high
+    global moisture_sensor
+
+    if plant_type == "corriander":
+        water_threshold = 90
+        print('found corriander')
+
+    elif plant_type == "basil":
+        water_threshold = 100
+
+        print('found basil')
+
+    elif plant_type == "salvia rosmarinus":
+        water_threshold = 100
+        print('found salvia')
+
+    elif plant_type == "thymus vulgaris":
+        water_threshold = 80
+
+        print('found thyme')
+
+    elif plant_type == "dill":
+        print("plant type: dill is not currently present in plant box")
+
+    elif plant_type == "spearmint":
+        print("plant type: spearmint is not currently present in plant box")
+
+    elif plant_type == "salvia officinalis":
+        print("plant type: salvia officinalis is not currently present in plant box")
+
+    elif plant_type == "oregano":
+        print("plant type: oregano is not currently present in plant box")
+
+
+    else:
+        # water_threshold is too low to turn stuff on
+        print('no such plant type or no plant')
+        water_threshold = 0
+
+    print('water threshold = {th}'.format(th=water_threshold))
+    return water_threshold
+
+# ---------------------------------------------------------------------------
+
+def map(x, in_min, in_max, out_min, out_max):
+    return ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+
+# ---------------------------------------------------------------------------
+
+
+def soilMoisture(pump, moistPinIn, moistPinPower, water_threshold):
+    global water_count
+    i = 0
+   
+
+
+    # loop to sample soil moisture 50 times
+    
+    moistPinPower.write(1.0)
+    
+    while moistPinIn.read() == None:
+       pass
+    moist = moistPinIn.read()
+    
+
+    print("Moisture:\n" + str(moist))
+
+    #turn off moisture pin after we're done with it
+    moistPinPower.write(0.0)
+
+    moisture_percentage = map(moist, map_low, map_high, 0, 100)
+    print("Moisture Percentage:\n" + str(moisture_percentage) + "%")
+
+    # compares moisture to specific threshold of plant
+    if moisture_percentage <= water_threshold:
+            Pumps(pump)
+            print('pumps are on')
+    else:
+        print('pumps are off')
+
+# ---------------------------------------------------------------------------
+
+# function that will maintain irrigation in all 4 boxes
+def mainIrrig(plant_box):
+    for box in plant_box:
+        print(box)
+
+        if str(box) == 'None':
+            print('box is None')
+
+        else:
+            print('box is not None')
+            # calls function that establishes watering threshold for plant
+            water_threshold = plant(box)
+            if box == 'basil':
+                # makes sure that correct pins activate where appropriate
+                pump = pumpPin3
+                moistPinIn = moistureIn[2]
+                moistPinPower = moisturePower[2]
+                print('got to irrigation, started soilMoisture"')
+                soilMoisture(pump, moistPinIn, moistPinPower, water_threshold)
+
