@@ -2,35 +2,52 @@ import os
 import random
 import pyfirmata
 from time import sleep
-from irrig import plant, soilMoisture
+import RPi.GPIO as GPIO
 
-board = pyfirmata.Arduino('/dev/ttyACM0')
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+try:
+    board = pyfirmata.Arduino('/dev/ttyACM0')
+except(Exception):
+    try:
+        board = pyfirmata.Arduino('/dev/ttyACM1')
+    except(Exception):
+        board = pyfirmata.Arduino('/dev/ttyAMA0')
+    
 
 # setup pins
 
 #pumps
-pumpPin1 = board.get_pin('d::o')
-pumpPin2 = board.get_pin('d::o')
-pumpPin3 = board.get_pin('d::o')
-pumpPin4 = board.get_pin('d::o')
-pumpPins = [pumpPin1, pumpPin2, pumpPin3, pumpPin4]
+#pumpPin1 = board.get_pin('d:1:o')  # not funtional
+#pumpPin1 = board.get_pin('d:1:o')  # not funtional
+#pumpPin2 = board.get_pin('d:2:o')  # not funtional
+pumpPin3 = board.get_pin('d:12:o')
+#pumpPin4 = board.get_pin('d:13:o')  # not funtional
+pumpPins = [pumpPin3]
 
 #lamp
-lampPin = board.get_pin('d::o')
+lampPin1 = 9
+lampPin2 = 11
+
+GPIO.setup(lampPin1, GPIO.OUT)
+GPIO.setup(lampPin2, GPIO.OUT)
+        
 
 #fans
-fanPin1 = board.get_pin('d::o')
-fanPin2 = board.get_pin('d::o')
+fanPin1 = board.get_pin('d:10:o')
+fanPin2 = board.get_pin('d:8:o')
 
 # moisture sensors:
-moistureIn1 = board.get_pin('a::o')
-moisturePower1 = board.get_pin('d::o')
-moistureIn2 = board.get_pin('a::o')
-moisturePower2 = board.get_pin('d::o')
-moistureIn3 = board.get_pin('a::o')
-moisturePower3 = board.get_pin('d::o')
-moistureIn4 = board.get_pin('a::o')
-moisturePower4 = board.get_pin('d::o')
+moistureIn1 = board.get_pin('a:0:i')
+moisturePower1 = board.get_pin('d:7:o')
+moistureIn2 = board.get_pin('a:1:i')
+moisturePower2 = board.get_pin('d:6:o')
+moistureIn3 = board.get_pin('a:2:i')
+moisturePower3 = board.get_pin('d:5:o')
+moistureIn4 = board.get_pin('a:3:i')
+moisturePower4 = board.get_pin('d:4:o')
 moistureIn = [moistureIn1, moistureIn2, moistureIn3, moistureIn4]
 moisturePower = [moisturePower1, moisturePower2, moisturePower3, moisturePower4]
 
@@ -39,10 +56,12 @@ map_low  = 1.0
 
 # lamp and fans functions
 def lampOn():
-    lampPin.write(1.0)
+    GPIO.output(lampPin1, 1)
+    GPIO.output(lampPin2, 1)
 
 def lampOff():
-    lampPin.write(0.0)
+    GPIO.output(lampPin1, 0)
+    GPIO.output(lampPin2, 0)
 
 def fanOn():
     fanPin1.write(1.0)
@@ -58,6 +77,7 @@ def AIout():
     global plant_box
     plant_box = [None, None, None, None]
     if os.path.isfile('AIout.txt'):
+        print('there is AIout.txt')
         f = open('AIout.txt', 'r')
         for i in range(4):
             plant_box[i] = f.readline().strip('\n')
@@ -88,7 +108,7 @@ def plant(plant_type):
         water_threshold = 90
         print('found corriander')
 
-    elif plant_type == "ocimum basilicum":
+    elif plant_type == "basil":
         water_threshold = 100
 
         print('found basil')
@@ -125,19 +145,27 @@ def plant(plant_type):
 
 # ---------------------------------------------------------------------------
 
+def map(x, in_min, in_max, out_min, out_max):
+    return ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+
+# ---------------------------------------------------------------------------
+
+
 def soilMoisture(pump, moistPinIn, moistPinPower, water_threshold):
     global water_count
     i = 0
-    moist = 0
+   
 
 
     # loop to sample soil moisture 50 times
-    while i <= 50:
-        moistPinPower.write(1.0)
-        moist += moistPinIn.read()
-        i += 1
+    
+    moistPinPower.write(1.0)
+    
+    while moistPinIn.read() == None:
+       pass
+    moist = moistPinIn.read()
+    
 
-    moist = moist / 50
     print("Moisture:\n" + str(moist))
 
     #turn off moisture pin after we're done with it
@@ -167,10 +195,11 @@ def mainIrrig(plant_box):
             print('box is not None')
             # calls function that establishes watering threshold for plant
             water_threshold = plant(box)
+            if box == 'basil':
+                # makes sure that correct pins activate where appropriate
+                pump = pumpPin3
+                moistPinIn = moistureIn[2]
+                moistPinPower = moisturePower[2]
+                print('got to irrigation, started soilMoisture"')
+                soilMoisture(pump, moistPinIn, moistPinPower, water_threshold)
 
-            # makes sure that correct pins activate where appropriate
-            pump = pumpPins[box]
-            moistPinIn = moistureIn[box]
-            moistPinPower = moisturePower[box]
-
-            soilMoisture(pump, moistPinIn, moistPinPower, water_threshold)
